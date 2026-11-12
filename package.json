@@ -1,0 +1,26 @@
+{
+  "name": "liverec",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Webcam face & pose recognition studio with an extensible augmentation-module pipeline.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc"
+  },
+  "dependencies": {
+    "@mediapipe/tasks-vision": "1.2.3"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "vite": "8.3.8",
+    "vitest": "5.1.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
