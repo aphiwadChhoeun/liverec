@@ -33,10 +33,11 @@ npm test           # vitest unit tests
   smooth on slower machines.
 - Camera switching mid-stream, mirror toggle, PNG snapshots.
 - A registry of augmentation modules: **Skin smoothing** (placeholder blur
-  pipeline), **Particle trail** (wrist-anchored particles) and **Iron Man mask**
+  pipeline), **Particle trail** (wrist-anchored particles), **Iron Man mask**
   (a red-and-gold helmet tracked onto your face, with metallic shading,
-  head-yaw-aware lighting and glowing eyes), all toggleable live — and all
-  examples of how to add your own (see
+  head-yaw-aware lighting and glowing eyes) and **Panda face** (panda ears,
+  eye patches with see-through eyes and a button nose, all tracked onto your
+  face), all toggleable live — and all examples of how to add your own (see
   [`src/modules/README.md`](src/modules/README.md)).
 
 ## Architecture
@@ -55,6 +56,7 @@ src/
     SkinSmooth.ts         # demo: face-oval blur (placeholder pipeline)
     ParticleTrail.ts      # demo: wrist particle trail
     IronManMask.ts        # demo: landmark-tracked Iron Man helmet
+    PandaFace.ts          # demo: landmark-tracked panda ears/patches/nose
   ui/
     Controls.ts           # buttons, dropdowns, checkboxes, badges, status/error
   utils/
@@ -149,8 +151,9 @@ npm test
 Covers the geometry helpers (pixel conversion, mirroring, the canonical face
 oval — cross-checked against the MediaPipe package data — bounds, centroids,
 lerp), the Iron Man helmet fit (landmark anchoring, roll, head yaw, mirroring,
-fallbacks and degenerate faces) and the module registry (ordering, duplicates,
-lifecycle transitions, error rollback, disposal).
+fallbacks and degenerate faces), the panda fit (eye-corner patches, roll,
+proportional fallbacks, mirroring and degenerate faces) and the module registry
+(ordering, duplicates, lifecycle transitions, error rollback, disposal).
 
 ## Acceptance criteria mapping
 

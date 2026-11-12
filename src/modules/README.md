@@ -176,6 +176,11 @@ fires `onEnable`/`onDisable`; refresh the panel by calling
   fades mask detection drop-outs, and per-face `Path2D`/gradient caching keeps
   steady-state rendering allocation-free. Exports `estimateIronManFit` as a
   DOM-free helper covered by unit tests.
+- **`PandaFace.ts`** — fits panda features to the face (ears above the head,
+  slanted eye patches with an even-odd hole so the wearer's eyes stay visible,
+  a glossy button nose and "w" smile) with an EMA-smoothed fit, appear/fade
+  ramp and per-face path/gradient caching. Exports `estimatePandaFit` as a
+  DOM-free helper covered by unit tests.
 
 Future extension points already supported by the data contracts (no core
 changes needed): mesh warping (478 face points + `z`), background

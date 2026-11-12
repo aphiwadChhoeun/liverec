@@ -9,6 +9,7 @@ import type { LayerId } from './app/types';
 import { SkinSmooth } from './modules/SkinSmooth';
 import { ParticleTrail } from './modules/ParticleTrail';
 import { IronManMask } from './modules/IronManMask';
+import { PandaFace } from './modules/PandaFace';
 import { clearModules, getModules, registerModule, setModuleEnabled } from './modules/registry';
 import { Controls } from './ui/Controls';
 import './style.css';
@@ -36,6 +37,7 @@ function bootstrap(): void {
   // here. Nothing else in the pipeline needs to change.
   registerModule(new SkinSmooth());
   registerModule(new IronManMask());
+  registerModule(new PandaFace());
   registerModule(new ParticleTrail());
 
   const controls = new Controls({
