@@ -168,6 +168,11 @@ fires `onEnable`/`onDisable`; refresh the panel by calling
 - **`ParticleTrail.ts`** — anchor-based spawning (pose wrists with hand-wrist
   fallback), pooled particles, `time`/`dt` driven motion, additive blending,
   reduced-motion awareness.
+- **`IronManMask.ts`** — fits a red-and-gold helmet to the face: landmark-based
+  roll/scale estimation (forehead, chin, cheekbones, eyes, mouth), EMA-smoothed
+  per-frame fit, roll-aligned canvas drawing, gradient shading, glowing eye
+  slits and a mouth grill. Exports `estimateIronManFit` as a DOM-free helper
+  covered by unit tests.
 
 Future extension points already supported by the data contracts (no core
 changes needed): mesh warping (478 face points + `z`), background
