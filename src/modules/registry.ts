@@ -19,9 +19,13 @@ export function registerModule(module: AugmentationModule): void {
   modules.push(module);
 }
 
-/** All registered modules in draw order (read-only view). */
+/**
+ * All registered modules in draw order. Returns a defensive snapshot, so
+ * callers cannot mutate the registry by accident (the renderer re-queries
+ * every frame and picks up runtime registrations automatically).
+ */
 export function getModules(): readonly AugmentationModule[] {
-  return modules;
+  return modules.slice();
 }
 
 export function getModule(id: string): AugmentationModule | undefined {
