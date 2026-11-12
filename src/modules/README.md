@@ -169,10 +169,13 @@ fires `onEnable`/`onDisable`; refresh the panel by calling
   fallback), pooled particles, `time`/`dt` driven motion, additive blending,
   reduced-motion awareness.
 - **`IronManMask.ts`** — fits a red-and-gold helmet to the face: landmark-based
-  roll/scale estimation (forehead, chin, cheekbones, eyes, mouth), EMA-smoothed
-  per-frame fit, roll-aligned canvas drawing, gradient shading, glowing eye
-  slits and a mouth grill. Exports `estimateIronManFit` as a DOM-free helper
-  covered by unit tests.
+  roll/scale/yaw estimation (forehead, chin, cheekbones, eyes, nose, mouth),
+  EMA-smoothed per-frame fit, and a layered canvas "material" pipeline (cast
+  shadow, banded metallic gradients, embossed panel seams, yaw-swept
+  speculars, glowing angular eye slits, recessed mouth grill). Appear/ghost
+  fades mask detection drop-outs, and per-face `Path2D`/gradient caching keeps
+  steady-state rendering allocation-free. Exports `estimateIronManFit` as a
+  DOM-free helper covered by unit tests.
 
 Future extension points already supported by the data contracts (no core
 changes needed): mesh warping (478 face points + `z`), background

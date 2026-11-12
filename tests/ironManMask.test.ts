@@ -113,6 +113,52 @@ describe('estimateIronManFit', () => {
     expect(mirrored.roll).toBeCloseTo(-unmirrored.roll, 5);
   });
 
+  it('estimates head yaw from the nose-tip offset', () => {
+    const fit = estimateIronManFit(
+      faceWith({ ...BASE_FACE, 1: [0.55, 0.6] }), // nose tip 50 px right
+      toCanvas,
+    );
+    expect(fit).not.toBeNull();
+    if (!fit) return;
+
+    // 50 px offset against a 200 px half face width.
+    expect(fit.yaw).toBeCloseTo(0.25, 5);
+  });
+
+  it('clamps extreme head yaw for lighting purposes', () => {
+    const fit = estimateIronManFit(
+      faceWith({ ...BASE_FACE, 1: [0.95, 0.6] }),
+      toCanvas,
+    );
+    expect(fit).not.toBeNull();
+    if (!fit) return;
+
+    expect(fit.yaw).toBe(0.85);
+  });
+
+  it('is yaw-neutral without a usable nose landmark', () => {
+    const fit = estimateIronManFit(faceWith(BASE_FACE), toCanvas);
+    expect(fit).not.toBeNull();
+    if (!fit) return;
+
+    expect(fit.yaw).toBe(0);
+  });
+
+  it('flips the yaw sign in the mirrored selfie view', () => {
+    const turned = {
+      ...BASE_FACE,
+      1: [0.55, 0.6],
+    } as Record<number, [number, number]>;
+
+    const unmirrored = estimateIronManFit(faceWith(turned), toCanvas);
+    const mirrored = estimateIronManFit(faceWith(turned), toCanvasMirrored);
+    expect(unmirrored).not.toBeNull();
+    expect(mirrored).not.toBeNull();
+    if (!unmirrored || !mirrored) return;
+
+    expect(mirrored.yaw).toBeCloseTo(-unmirrored.yaw, 5);
+  });
+
   it('returns null for missing, degenerate or tiny faces', () => {
     expect(estimateIronManFit([], toCanvas)).toBeNull();
     // Missing eye landmarks.
