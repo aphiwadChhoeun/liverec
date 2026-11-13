@@ -35,9 +35,10 @@ npm test           # vitest unit tests
 - A registry of augmentation modules: **Skin smoothing** (placeholder blur
   pipeline), **Particle trail** (wrist-anchored particles), **Iron Man mask**
   (a red-and-gold helmet tracked onto your face, with metallic shading,
-  head-yaw-aware lighting and glowing eyes) and **Panda face** (panda ears,
-  eye patches with see-through eyes and a button nose, all tracked onto your
-  face), all toggleable live — and all examples of how to add your own (see
+  head-yaw-aware lighting and glowing eyes) and **Panda face** (an opaque white
+  panda mask with transparent eye holes, black ears, eye patches and a button
+  nose, all tracked onto your face), all toggleable live — and all examples of
+  how to add your own (see
   [`src/modules/README.md`](src/modules/README.md)).
 
 ## Architecture

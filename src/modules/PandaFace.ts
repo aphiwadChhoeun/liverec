@@ -8,9 +8,10 @@
  *
  *   1. ears        — soft black discs peeking above the head, drawn first so
  *                    they sit "behind" the face
- *   2. muzzle      — a warm-white wash around the nose/mouth that reads as fur
- *   3. eye patches — slanted black patches built with an even-odd hole around
- *                    each eye, so the wearer's eyes stay visible
+ *   2. white face  — an opaque white fill over the tracked face oval with
+ *                    transparent eye holes punched through it, so only the
+ *                    wearer's real eyes show through
+ *   3. eye patches — slanted black patches drawn around those holes
  *   4. nose        — glossy black button nose over the nose tip
  *   5. mouth       — the little panda "w" smile below the nose
  *
@@ -54,8 +55,8 @@ const APPEAR_T_REDUCED = 0.12;
 const FADE_T = 0.22;
 
 /** Even-odd hole around each eye, as a fraction of the patch size. */
-const EYE_HOLE_RX = 0.68;
-const EYE_HOLE_RY = 0.62;
+const EYE_HOLE_RX = 0.62;
+const EYE_HOLE_RY = 0.56;
 
 /** Outward slant of the eye patches (radians). */
 const PATCH_SLANT = 0.34;
@@ -258,6 +259,9 @@ export function estimatePandaFit(
 interface PandaMetrics {
   faceWidth: number;
   faceHeight: number;
+  /** Local forehead / chin lines the white face oval spans. */
+  browY: number;
+  chinY: number;
   /** Base stroke weight, scaled with the face. */
   edge: number;
   /** Eye-patch center and extent, in local space. */
@@ -280,10 +284,6 @@ interface PandaMetrics {
   /** Mouth geometry. */
   mouthY: number;
   mouthHalf: number;
-  /** Muzzle wash center / radii. */
-  muzzleY: number;
-  muzzleRX: number;
-  muzzleRY: number;
 }
 
 /**
@@ -347,7 +347,8 @@ const SMOOTH_TAU = {
 export class PandaFace implements AugmentationModule {
   id = 'panda-face';
   name = 'Panda face';
-  description = 'Panda ears, eye patches and nose tracked onto the face.';
+  description =
+    'White panda face with transparent eye holes, black ears and a button nose.';
   enabled = false;
 
   private readonly states: Array<PandaState | undefined> = [];
@@ -492,6 +493,7 @@ export class PandaFace implements AugmentationModule {
     // Rebuild cached paths / gradients only when the quantized fit moved.
     paint.sync(
       `${Math.round(m.faceWidth)}:${Math.round(m.faceHeight)}:` +
+        `${Math.round(m.browY)}:${Math.round(m.chinY)}:` +
         `${Math.round(m.earX)}:${Math.round(m.earY)}:${Math.round(m.earR)}:` +
         `${Math.round(m.noseY)}:${Math.round(m.noseW)}:${Math.round(m.noseH)}:` +
         `${Math.round(m.mouthY)}:${Math.round(m.mouthHalf)}:` +
@@ -508,29 +510,39 @@ export class PandaFace implements AugmentationModule {
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
 
-    this.drawMuzzle(ctx, paint, m);
     this.drawEars(ctx, paint, m);
+    this.drawFace(ctx, paint, m);
     this.drawEyePatches(ctx, paint, m);
     this.drawNose(ctx, paint, m);
     this.drawMouth(ctx, m);
   }
 
-  /** Soft white fur wash around the nose and mouth. */
-  private drawMuzzle(
+  /**
+   * Opaque white panda face, clipped to the tracked face oval. The eye holes
+   * are even-odd cut-outs, so the real video/eyes remain visible through them.
+   */
+  private drawFace(
     ctx: CanvasRenderingContext2D,
     paint: PandaPaint,
     m: PandaMetrics,
   ): void {
-    ctx.fillStyle = paint.gradient('muzzle', ctx, (c) =>
-      radialGradient(c, 0, m.muzzleY, m.muzzleRX, [
-        [0, 'rgba(255, 249, 240, 0.22)'],
-        [0.55, 'rgba(255, 249, 240, 0.1)'],
-        [1, 'rgba(255, 249, 240, 0)'],
-      ]),
-    );
-    ctx.beginPath();
-    ctx.ellipse(0, m.muzzleY, m.muzzleRX, m.muzzleRY, 0, 0, TAU);
-    ctx.fill();
+    const head = paint.path('head', () => {
+      const path = buildHeadPath(m);
+      for (const patch of m.patches) {
+        addEllipse(
+          path,
+          patch.holeCenter.x,
+          patch.holeCenter.y,
+          patch.rx * EYE_HOLE_RX,
+          patch.ry * EYE_HOLE_RY,
+          patch.angle,
+        );
+      }
+      return path;
+    });
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fill(head, 'evenodd');
   }
 
   private drawEars(
@@ -599,8 +611,7 @@ export class PandaFace implements AugmentationModule {
       );
 
       ctx.save();
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.28)';
-      ctx.shadowBlur = Math.max(1, m.edge * 1.6);
+      // No shadow: it would bleed into the transparent eye hole.
       ctx.fillStyle = patchFill;
       // Even-odd punches the eye hole so the wearer's eyes stay visible.
       ctx.fill(path, 'evenodd');
@@ -711,7 +722,7 @@ function measure(fit: PandaFit): PandaMetrics | null {
     distance(fit.eyeRight, fit.eyeLeft),
     MIN_FACE_PX / 3,
   );
-  const patchRx = eyeSpan * 0.42;
+  const patchRx = eyeSpan * 0.48;
   const patchRy = patchRx * 0.74;
 
   const patches = [
@@ -743,11 +754,11 @@ function measure(fit: PandaFit): PandaMetrics | null {
     fit.chinY - faceHeight * 0.05,
   );
 
-  const muzzleY = (noseY + fit.chinY) / 2;
-
   return {
     faceWidth,
     faceHeight,
+    browY: fit.browY,
+    chinY: fit.chinY,
     edge: Math.max(1, faceHeight * 0.008),
     patches,
     earX: faceWidth * 0.56,
@@ -758,10 +769,54 @@ function measure(fit: PandaFit): PandaMetrics | null {
     noseH,
     mouthY,
     mouthHalf,
-    muzzleY,
-    muzzleRX: faceWidth * 0.42,
-    muzzleRY: faceHeight * 0.18,
   };
+}
+
+/**
+ * White panda face: an egg-shaped oval spanning the tracked forehead-to-chin
+ * lines, slightly wider than the cheekbones.
+ */
+function buildHeadPath(m: PandaMetrics): Path2D {
+  const top = m.browY - m.faceHeight * 0.015;
+  const bottom = m.chinY + m.faceHeight * 0.015;
+  const height = bottom - top;
+  const halfWidth = m.faceWidth * 0.53;
+  const p = new Path2D();
+  p.moveTo(0, top);
+  // Right side: temple → cheek → jaw → chin.
+  p.bezierCurveTo(
+    halfWidth * 0.55, top - height * 0.005,
+    halfWidth * 0.95, top + height * 0.13,
+    halfWidth, top + height * 0.31,
+  );
+  p.bezierCurveTo(
+    halfWidth * 1.02, top + height * 0.53,
+    halfWidth * 0.9, top + height * 0.73,
+    halfWidth * 0.63, top + height * 0.88,
+  );
+  p.bezierCurveTo(
+    halfWidth * 0.43, top + height * 0.96,
+    halfWidth * 0.2, bottom,
+    0, bottom,
+  );
+  // Mirrored left side.
+  p.bezierCurveTo(
+    -halfWidth * 0.2, bottom,
+    -halfWidth * 0.43, top + height * 0.96,
+    -halfWidth * 0.63, top + height * 0.88,
+  );
+  p.bezierCurveTo(
+    -halfWidth * 0.9, top + height * 0.73,
+    -halfWidth * 1.02, top + height * 0.53,
+    -halfWidth, top + height * 0.31,
+  );
+  p.bezierCurveTo(
+    -halfWidth * 0.95, top + height * 0.13,
+    -halfWidth * 0.55, top - height * 0.005,
+    0, top,
+  );
+  p.closePath();
+  return p;
 }
 
 /** Slanted black eye patch with an even-odd hole around the eye. */
@@ -773,17 +828,36 @@ function buildPatchPath(
   angle: number,
 ): Path2D {
   const p = new Path2D();
-  p.ellipse(center.x, center.y, rx, ry, angle, 0, TAU);
-  p.ellipse(
+  addEllipse(p, center.x, center.y, rx, ry, angle);
+  addEllipse(
+    p,
     holeCenter.x,
     holeCenter.y,
     rx * EYE_HOLE_RX,
     ry * EYE_HOLE_RY,
     angle,
-    0,
-    TAU,
   );
   return p;
+}
+
+/**
+ * Add a full ellipse as a fresh subpath. `Path2D.ellipse()` connects to the
+ * previous subpath with a line, which under the even-odd rule creates stray
+ * cut-outs — starting the subpath at the ellipse's own start point avoids it.
+ */
+function addEllipse(
+  path: Path2D,
+  cx: number,
+  cy: number,
+  rx: number,
+  ry: number,
+  rotation: number,
+): void {
+  path.moveTo(
+    cx + rx * Math.cos(rotation),
+    cy + rx * Math.sin(rotation),
+  );
+  path.ellipse(cx, cy, rx, ry, rotation, 0, TAU);
 }
 
 /** Rounded button nose, widest at the top and tapering to a soft point. */
